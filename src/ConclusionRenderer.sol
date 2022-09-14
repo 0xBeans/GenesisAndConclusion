@@ -83,7 +83,7 @@ contract ConclusionRenderer is Ownable {
                 // string(SSTORE2.read(files[3])),                    
                 // string(SSTORE2.read(files[4])),  
                 getFont(),                  
-                "'}"
+                ");}"
                 ".title {"
                 "font-family: 'Space-Grotesk';"
                 "letter-spacing: 0.025em;"

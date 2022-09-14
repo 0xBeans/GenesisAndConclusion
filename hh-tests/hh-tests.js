@@ -78,9 +78,9 @@ describe("Mirakai Full integration tests", function () {
 
       console.log("HERE", uri)
 
-      let font = await conclusionRenderer.getFont()
+    //   let font = await conclusionRenderer.getFont()
 
-      console.log("FOT", font)
+    //   console.log("FOT", font)
       
   });
 });
