@@ -15,3 +15,6 @@ node_modules/
 hh-cache
 
 .DS_Store
+
+# forge
+lib/
