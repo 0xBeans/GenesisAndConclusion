@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.13;
+pragma solidity 0.8.13;
 
 import "openzeppelin/token/ERC721/ERC721.sol";
 import "openzeppelin/access/Ownable.sol";
@@ -12,8 +12,8 @@ contract Conclusion is ERC721, Ownable {
     error MergeHasOccured();
 
     struct MintInfo {
-        uint128 blockNum;
-        uint128 blockdifficulty;
+        uint128 blockNumber;
+        uint128 blockDifficulty;
     }
 
     uint256 public lastWorkBlock;
@@ -29,17 +29,17 @@ contract Conclusion is ERC721, Ownable {
         _;
     }
 
-    constructor() ERC721("Conclusion", "CONCLUSION") {}
+    constructor() ERC721("The Last Work", "CONCLUSION") {}
 
     function setRenderer(address renderer) external onlyOwner {
         conclusionRenderer = renderer;
     }
 
     function mint() external onlyEOA {
-        if (mintedBlocks[tx.origin] > 0) revert AlreadyMinted();
-        if (mergeHasOccured()) revert MergeHasOccured();
+        _assetPoW();
 
-        checkProofOfWorkValidAndUpdate();
+        if (mintedBlocks[tx.origin] > 0)
+            revert AlreadyMinted();
 
         uint256 currSupply = totalSupply;
 
@@ -56,13 +56,14 @@ contract Conclusion is ERC721, Ownable {
         totalSupply = currSupply;
     }
 
-    function checkProofOfWorkValidAndUpdate() public {
-        if (!mergeHasOccured()) {
-            lastWorkBlock = block.number;
-        }
+    function _assetPoW() internal {
+        if (isPoS())
+            revert MergeHasOccured();
+
+        lastWorkBlock = block.number;
     }
 
-    function mergeHasOccured() public view returns (bool) {
+    function isPoS() public view returns (bool) {
         return block.difficulty > 2**64 || block.difficulty == 0;
     }
 
@@ -73,11 +74,11 @@ contract Conclusion is ERC721, Ownable {
         override
         returns (string memory)
     {
-        if (!_exists(_tokenId)) revert TokenDoesNotExist();
+        if (!_exists(_tokenId))
+            revert TokenDoesNotExist();
 
-        if (conclusionRenderer == address(0)) {
+        if (conclusionRenderer == address(0))
             return "";
-        }
 
         MintInfo memory info = tokenToBlockNum[_tokenId];
 
