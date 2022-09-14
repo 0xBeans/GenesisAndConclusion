@@ -35,7 +35,7 @@ contract ConclusionRenderer is Ownable {
                     Base64.encode(
                         abi.encodePacked(
                             "{"
-                            '"name": "Conclusion",',
+                            '"name": "Sunset",',
                             '"description": "An attempt to be the last on-chain NFT to be minted on POW",'
                             '"image": "data:image/svg+xml;base64,',
                             Base64.encode(bytes(getSVG(blockNumber))),

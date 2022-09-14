@@ -51,7 +51,7 @@ module.exports = {
     mainnet: {
       url: process.env.NODE_URL_MAINNET,
       accounts: [process.env.PK],
-      // gasPrice: 40000000000
+      gasPrice: 40000000000
     },
     goerli: {
       url: process.env.NODE_URL,

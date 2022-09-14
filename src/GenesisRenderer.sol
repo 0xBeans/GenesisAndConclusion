@@ -32,7 +32,7 @@ contract GenesisRenderer is Ownable {
                     Base64.encode(
                         abi.encodePacked(
                             "{"
-                            '"name": "Genesis",',
+                            '"name": "Sunrise",',
                             '"description": "An attempt to be the first on-chain NFT to be minted on POS",'
                             '"image": "data:image/svg+xml;base64,',
                             Base64.encode(bytes(getSVG(blockNumber))),

@@ -1,13 +1,5 @@
 const fs = require("fs");
 
-
-// conclusion 0x485C38656729c9A59173B4218E85d6B283BE6657
-// conclusionRenderer 0xf53B34ea1055809518463F67fc232E3889DA5feC
-// genesis 0x5405e951837cFa67dC4ccf8f7bFD34b6Be7eB288
-// genesisRenderer 0xC53C322594C5a0f4145a0f63Ad29c98B80695850
-// spaceFont 0x4C8455415AEeD60d06F43a696E5BD0fb9dA7027B
-
-
 async function main() {
   const [deployer] = await ethers.getSigners();
 
@@ -16,13 +8,13 @@ async function main() {
 
   // todo: Update the addresses to attach to after deploy
   const SpaceFont = await ethers.getContractFactory("SpaceFont");
-  const spaceFont = await SpaceFont.attach("0x4C8455415AEeD60d06F43a696E5BD0fb9dA7027B");
+  const spaceFont = await SpaceFont.attach("0x6B9045e4855ebB16c8F7E291943a7743E34cA57C");
 
   const GenesisRenderer = await ethers.getContractFactory("GenesisRenderer");
-  const genesisRenderer = await GenesisRenderer.attach("0xC53C322594C5a0f4145a0f63Ad29c98B80695850");
+  const genesisRenderer = await GenesisRenderer.attach("0xf2910c0f6856A2092a831494Cd510F33811B43eb");
 
   const ConclusionRenderer = await ethers.getContractFactory("ConclusionRenderer");
-  const conclusionRenderer = await ConclusionRenderer.attach("0xf53B34ea1055809518463F67fc232E3889DA5feC");
+  const conclusionRenderer = await ConclusionRenderer.attach("0x6cf6A54125DaD7D174631a73347257aE5769572c");
 
   // read base64 encoded font
   const file = await fs.readFileSync(

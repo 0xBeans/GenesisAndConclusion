@@ -11,7 +11,7 @@ import "./IGenesisRenderer.sol";
 /// @author @high_byte
 contract Genesis is ERC721, Ownable {
     error TokenDoesNotExist();
-    error MergeHasNotOccured();
+    error MergeHasNotOccurred();
     error TooLate();
 
     // cam only mint at most 100 blocks after the merge
@@ -31,13 +31,13 @@ contract Genesis is ERC721, Ownable {
         _;
     }
 
-    constructor() ERC721("Genesis", "GENESIS") {}
+    constructor() ERC721("Sunrise", "SUNRISE") {}
 
     // can only start minting after the merge has occurred
     // can only mint 1 token, if you submit multiple mint txns,
     // you'll update your token values
     function mint() external onlyEOA {
-        // assert merge has occured
+        // assert merge has occurred
         assertPOS();
 
         // assert you're minting within 100 blocks
@@ -63,11 +63,11 @@ contract Genesis is ERC721, Ownable {
     }
 
     function assertPOS() public {
-        if (!mergeHasOccured()) revert MergeHasNotOccured();
+        if (!mergeHasOccurred()) revert MergeHasNotOccurred();
         if (genesisMergeBlock == 0) genesisMergeBlock = block.number;
     }
 
-    function mergeHasOccured() public view returns (bool) {
+    function mergeHasOccurred() public view returns (bool) {
         return block.difficulty > 2**64 || block.difficulty == 0;
     }
 

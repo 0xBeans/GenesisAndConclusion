@@ -5,12 +5,12 @@ const fs = require("fs");
 
 
 describe("2Blocks", function () {
-  let GenesisFactory;
-  let GenesisRendererFactory;
+  let ConclusionFactory;
+  let ConclusionRendererFactory;
   let spaceFontFactory;
 
-  let Genesis;
-  let GenesisRenderer;
+  let Conclusion;
+  let ConclusionRenderer;
   let spaceFont;
 
   let owner;
@@ -24,18 +24,18 @@ describe("2Blocks", function () {
       "0x3532c806834d0a952c89f8954e2f3c417e3d6a5ad0d985c4a87a545da0ca722a";
 
   beforeEach(async function() {
-    GenesisFactory = await ethers.getContractFactory("Genesis");
-    GenesisRendererFactory = await ethers.getContractFactory("GenesisRenderer");
+    ConclusionFactory = await ethers.getContractFactory("Conclusion");
+    ConclusionRendererFactory = await ethers.getContractFactory("ConclusionRenderer");
     spaceFontFactory = await ethers.getContractFactory("SpaceFont");
 
     [owner, addr1, addr2, ...addrs] = await ethers.getSigners();
 
-    Genesis = await GenesisFactory.deploy();
-    GenesisRenderer = await GenesisRendererFactory.deploy();
+    Conclusion = await ConclusionFactory.deploy();
+    ConclusionRenderer = await ConclusionRendererFactory.deploy();
     spaceFont = await spaceFontFactory.deploy();
 
-    await Genesis.setRenderer(GenesisRenderer.address)
-    GenesisRenderer.setFontContract(spaceFont.address)
+    await Conclusion.setRenderer(ConclusionRenderer.address)
+    ConclusionRenderer.setFontContract(spaceFont.address)
     
 
     const file = await fs.readFileSync(
@@ -59,18 +59,18 @@ describe("2Blocks", function () {
     await spaceFont.saveFile(4, fifthPart)
 
     const fileBG = await fs.readFileSync(
-        __dirname + '/../initialization-scripts/pos_gradient.txt'
+        __dirname + '/../initialization-scripts/pow_gradient.txt'
     );
     const bg = fileBG.toString();
 
-    await GenesisRenderer.saveFile(0, bg)
+    await ConclusionRenderer.saveFile(0, bg)
 
   })
 
   it("should mint-drip-reroll-summon", async function () {
-      await Genesis.mint()
+      await Conclusion.mint()
 
-      let uri = await Genesis.tokenURI(0)
+      let uri = await Conclusion.tokenURI(1)
 
       console.log("HERE", uri)
       

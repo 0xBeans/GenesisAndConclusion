@@ -12,7 +12,7 @@ import "./IConclusionRenderer.sol";
 contract Conclusion is ERC721, Ownable {
     error AlreadyMinted();
     error TokenDoesNotExist();
-    error MergeHasOccured();
+    error MergeHasOccurred();
 
     struct MintInfo {
         uint128 blockNumber;
@@ -33,7 +33,7 @@ contract Conclusion is ERC721, Ownable {
         _;
     }
 
-    constructor() ERC721("Conclusion", "CONCLUSION") {}
+    constructor() ERC721("Sunset", "SUNSET") {}
 
     // can only start minting before the merge has occurred
     // can only mint 1 token, if you submit multiple mint txns,
@@ -67,14 +67,14 @@ contract Conclusion is ERC721, Ownable {
     }
 
     function assertPOW() public {
-        if (mergeHasOccured()) {
-            revert MergeHasOccured();
+        if (mergeHasOccurred()) {
+            revert MergeHasOccurred();
         }
 
         lastWorkBlock = block.number;
     }
 
-    function mergeHasOccured() public view returns (bool) {
+    function mergeHasOccurred() public view returns (bool) {
         return block.difficulty > 2**64 || block.difficulty == 0;
     }
 
