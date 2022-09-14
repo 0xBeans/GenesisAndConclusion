@@ -6,23 +6,25 @@ import "openzeppelin/access/Ownable.sol";
 
 import "./IGenesisRenderer.sol";
 
+/// @title An attempt to be the first on-chain NFT minted on POS ETH
+/// @author @0x_beans
+/// @author @high_byte
 contract Genesis is ERC721, Ownable {
-    error AlreadyMinted();
     error TokenDoesNotExist();
     error MergeHasNotOccured();
+    error TooLate();
 
-    struct MintInfo {
-        uint128 blockNum;
-        uint128 blockdifficulty;
-    }
+    // cam only mint at most 100 blocks after the merge
+    uint256 immutable MAX_MINT_DISTANCE = 100;
 
     uint256 public genesisMergeBlock;
     uint256 public totalSupply;
 
+    // token renderer
     address public genesisRenderer;
 
-    mapping(address => uint256) mintedBlocks;
-    mapping(uint256 => MintInfo) tokenToBlockNum;
+    mapping(address => uint256) public minterToToken;
+    mapping(uint256 => uint256) public tokenToBlockNumber;
 
     modifier onlyEOA() {
         require(msg.sender == tx.origin, "only EOA");
@@ -31,35 +33,38 @@ contract Genesis is ERC721, Ownable {
 
     constructor() ERC721("Genesis", "GENESIS") {}
 
-    function setRenderer(address renderer) external onlyOwner {
-        genesisRenderer = renderer;
-    }
-
+    // can only start minting after the merge has occurred
+    // can only mint 1 token, if you submit multiple mint txns,
+    // you'll update your token values
     function mint() external onlyEOA {
-        if (mintedBlocks[tx.origin] > 0) revert AlreadyMinted();
-        if (!mergeHasOccured()) revert MergeHasNotOccured();
+        // assert merge has occured
+        assertPOS();
 
-        checkForMergeAndUpdate();
+        // assert you're minting within 100 blocks
+        if (block.number - genesisMergeBlock > MAX_MINT_DISTANCE)
+            revert TooLate();
 
-        uint256 currSupply = totalSupply;
+        uint256 tokenId = minterToToken[tx.origin];
 
-        mintedBlocks[tx.origin] = block.number;
-        tokenToBlockNum[currSupply] = MintInfo(
-            uint128(block.number),
-            uint128(block.difficulty)
-        );
+        // if you haven't minted yet, mint
+        if (tokenId == 0) {
+            uint256 currSupply = totalSupply;
+            unchecked {
+                _mint(tx.origin, ++currSupply);
+                tokenToBlockNumber[currSupply] = uint128(block.number);
 
-        unchecked {
-            _mint(tx.origin, currSupply++);
+                minterToToken[tx.origin] = currSupply;
+                totalSupply = currSupply;
+            }
+        } else {
+            // update block num if you've already minted
+            tokenToBlockNumber[tokenId] = uint128(block.number);
         }
-
-        totalSupply = currSupply;
     }
 
-    function checkForMergeAndUpdate() public {
-        if (genesisMergeBlock == 0 && mergeHasOccured()) {
-            genesisMergeBlock = block.number;
-        }
+    function assertPOS() public {
+        if (!mergeHasOccured()) revert MergeHasNotOccured();
+        if (genesisMergeBlock == 0) genesisMergeBlock = block.number;
     }
 
     function mergeHasOccured() public view returns (bool) {
@@ -79,13 +84,15 @@ contract Genesis is ERC721, Ownable {
             return "";
         }
 
-        MintInfo memory info = tokenToBlockNum[_tokenId];
-
         return
             IGenesisRenderer(genesisRenderer).tokenURI(
                 _tokenId,
-                info.blockNum,
-                info.blockdifficulty
+                tokenToBlockNumber[_tokenId],
+                genesisMergeBlock
             );
+    }
+
+    function setRenderer(address renderer) external onlyOwner {
+        genesisRenderer = renderer;
     }
 }

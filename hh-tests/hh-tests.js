@@ -44,7 +44,7 @@ describe("2Blocks", function () {
 
     const content = file.toString();
 
-    const partition_size = content.length / 5
+    const partition_size = content.length / 2
 
     const firstPart = content.substring(0, partition_size);
     const secondPart = content.substring(partition_size, partition_size*2)
@@ -73,10 +73,6 @@ describe("2Blocks", function () {
       let uri = await Genesis.tokenURI(0)
 
       console.log("HERE", uri)
-
-    //   let font = await GenesisRenderer.getFont()
-
-    //   console.log("FOT", font)
       
   });
 });

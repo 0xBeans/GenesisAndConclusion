@@ -6,23 +6,27 @@ import "openzeppelin/access/Ownable.sol";
 
 import "./IConclusionRenderer.sol";
 
+/// @title An attempt to be the last on-chain NFT minted on POW ETH
+/// @author @0x_beans
+/// @author @high_byte
 contract Conclusion is ERC721, Ownable {
     error AlreadyMinted();
     error TokenDoesNotExist();
     error MergeHasOccured();
 
     struct MintInfo {
-        uint128 blockNum;
-        uint128 blockdifficulty;
+        uint128 blockNumber;
+        uint128 blockDifficulty;
     }
 
     uint256 public lastWorkBlock;
     uint256 public totalSupply;
 
+    // token renderer
     address public conclusionRenderer;
 
-    mapping(address => uint256) mintedBlocks;
-    mapping(uint256 => MintInfo) tokenToBlockNum;
+    mapping(address => uint256) public minterToToken;
+    mapping(uint256 => MintInfo) public tokenToBlockNumber;
 
     modifier onlyEOA() {
         require(msg.sender == tx.origin, "only EOA");
@@ -31,35 +35,43 @@ contract Conclusion is ERC721, Ownable {
 
     constructor() ERC721("Conclusion", "CONCLUSION") {}
 
-    function setRenderer(address renderer) external onlyOwner {
-        conclusionRenderer = renderer;
-    }
-
+    // can only start minting before the merge has occurred
+    // can only mint 1 token, if you submit multiple mint txns,
+    // you'll update your token values
     function mint() external onlyEOA {
-        if (mintedBlocks[tx.origin] > 0) revert AlreadyMinted();
-        if (mergeHasOccured()) revert MergeHasOccured();
+        // assert we're still POW
+        assertPOW();
 
-        checkProofOfWorkValidAndUpdate();
+        uint256 tokenId = minterToToken[tx.origin];
 
-        uint256 currSupply = totalSupply;
+        // mint if wallet hasn't minted already
+        if (tokenId == 0) {
+            uint256 currSupply = totalSupply;
+            unchecked {
+                _mint(tx.origin, ++currSupply);
+                tokenToBlockNumber[currSupply] = MintInfo(
+                    uint128(block.number),
+                    uint128(block.difficulty)
+                );
 
-        mintedBlocks[tx.origin] = block.number;
-        tokenToBlockNum[currSupply] = MintInfo(
-            uint128(block.number),
-            uint128(block.difficulty)
-        );
-
-        unchecked {
-            _mint(tx.origin, currSupply++);
+                minterToToken[tx.origin] = currSupply;
+                totalSupply = currSupply;
+            }
+        } else {
+            // update token values if wallet has already minted
+            tokenToBlockNumber[tokenId] = MintInfo(
+                uint128(block.number),
+                uint128(block.difficulty)
+            );
         }
-
-        totalSupply = currSupply;
     }
 
-    function checkProofOfWorkValidAndUpdate() public {
-        if (!mergeHasOccured()) {
-            lastWorkBlock = block.number;
+    function assertPOW() public {
+        if (mergeHasOccured()) {
+            revert MergeHasOccured();
         }
+
+        lastWorkBlock = block.number;
     }
 
     function mergeHasOccured() public view returns (bool) {
@@ -79,13 +91,17 @@ contract Conclusion is ERC721, Ownable {
             return "";
         }
 
-        MintInfo memory info = tokenToBlockNum[_tokenId];
+        MintInfo memory info = tokenToBlockNumber[_tokenId];
 
         return
             IConclusionRenderer(conclusionRenderer).tokenURI(
                 _tokenId,
-                info.blockNum,
-                info.blockdifficulty
+                info.blockNumber,
+                info.blockDifficulty
             );
+    }
+
+    function setRenderer(address renderer) external onlyOwner {
+        conclusionRenderer = renderer;
     }
 }

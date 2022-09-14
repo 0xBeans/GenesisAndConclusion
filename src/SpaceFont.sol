@@ -2,29 +2,21 @@
 pragma solidity ^0.8.13;
 
 import "openzeppelin/access/Ownable.sol";
-import "sstore2/SSTORE2.sol";
+import {SSTORE2} from "solady/utils/SSTORE2.sol";
 
+/// @title On-chain font for space grotesk font
+/// @author @0x_beans
 contract SpaceFont is Ownable {
-    // storing scroll files in contract storage using sstore2 because
-    // marketplaces dont allow 3rd party filess to be loaded via url
-    // kill  me
+    // font is > 24kb so we need to chunk it
     uint256 public constant FONT_PARTITION_1 = 0;
     uint256 public constant FONT_PARTITION_2 = 1;
     uint256 public constant FONT_PARTITION_3 = 2;
     uint256 public constant FONT_PARTITION_4 = 3;
     uint256 public constant FONT_PARTITION_5 = 4;
-    uint256 public constant GRADIENT = 5;
 
     mapping(uint256 => address) public files;
 
-    // saving scroll files on-chain. pain.
-    function saveFile(uint256 index, string calldata fileContent)
-        public
-        onlyOwner
-    {
-        files[index] = SSTORE2.write(bytes(fileContent));
-    }
-
+    // grab font
     function getFont() public view returns (string memory) {
         return
             string(
@@ -36,5 +28,13 @@ contract SpaceFont is Ownable {
                     SSTORE2.read(files[4])
                 )
             );
+    }
+
+    // save font on chain. pain
+    function saveFile(uint256 index, string calldata fileContent)
+        public
+        onlyOwner
+    {
+        files[index] = SSTORE2.write(bytes(fileContent));
     }
 }

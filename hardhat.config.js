@@ -53,7 +53,7 @@ module.exports = {
       accounts: [process.env.PK],
       // gasPrice: 40000000000
     },
-    rinkeby: {
+    goerli: {
       url: process.env.NODE_URL,
       accounts: [process.env.PK],
       // gas: 2100000,

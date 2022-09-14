@@ -9,35 +9,21 @@ import {LibString} from "solady/utils/LibString.sol";
 
 import "./ISpaceFont.sol";
 
+/// @title On-chain renderer for POS NFT
+/// @author @0x_beans
 contract GenesisRenderer is Ownable {
-    // storing scroll files in contract storage using sstore2 because
-    // marketplaces dont allow 3rd party filess to be loaded via url
-    // kill  me
-
+    // index where the gradient image is stored
     uint256 public constant GRADIENT = 0;
 
+    // mapping to store the gradient
     mapping(uint256 => address) public files;
 
-    address public spaceFont;
-
-    function setFontContract(address font) external onlyOwner {
-        spaceFont = font;
-    }
-
-    // saving scroll files on-chain. pain.
-    function saveFile(uint256 index, string calldata fileContent)
-        public
-        onlyOwner
-    {
-        files[index] = SSTORE2.write(bytes(fileContent));
-    }
-
-    // we have dna as a param in the interface incase we want to do update our
-    // renderer to use it (ie potential onchain layering)
+    // we pass in tokenID even though we don't use it
+    // in case we need it when we upgrade renderers
     function tokenURI(
         uint256 tokenId,
         uint256 blockNumber,
-        uint256 blockDifficulty
+        uint256 mergeBlock
     ) external view returns (string memory svgString) {
         return
             string(
@@ -54,8 +40,8 @@ contract GenesisRenderer is Ownable {
                             '"attributes": [{"trait_type": "block number", "value":"',
                             LibString.toString(blockNumber),
                             '"},',
-                            '{"trait_type": "block difficulty", "value":"',
-                            LibString.toString(blockDifficulty),
+                            '{"trait_type": "merge block number", "value":"',
+                            LibString.toString(mergeBlock),
                             '"}]}'
                         )
                     )
@@ -63,6 +49,7 @@ contract GenesisRenderer is Ownable {
             );
     }
 
+    // construct image
     function getSVG(uint256 blockNumber)
         internal
         view
@@ -88,7 +75,6 @@ contract GenesisRenderer is Ownable {
                 "font-family: 'Space-Grotesk';"
                 "font-style: normal;"
                 "src:url(",
-                // getFont(),
                 ISpaceFont(spaceFont).getFont(),
                 ");}"
                 ".title {"
@@ -101,5 +87,20 @@ contract GenesisRenderer is Ownable {
                 "</svg>"
             )
         );
+    }
+
+    // on chain font
+    address public spaceFont;
+
+    function setFontContract(address font) external onlyOwner {
+        spaceFont = font;
+    }
+
+    // save gradient on chain
+    function saveFile(uint256 index, string calldata fileContent)
+        public
+        onlyOwner
+    {
+        files[index] = SSTORE2.write(bytes(fileContent));
     }
 }

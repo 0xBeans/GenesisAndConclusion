@@ -9,31 +9,20 @@ import {LibString} from "solady/utils/LibString.sol";
 
 import "./ISpaceFont.sol";
 
+/// @title On-chain renderer for POW NFT
+/// @author @0x_beans
 contract ConclusionRenderer is Ownable {
-    // storing scroll files in contract storage using sstore2 because
-    // marketplaces dont allow 3rd party filess to be loaded via url
-    // kill  me
-
+    // index of where the gradient image is tored
     uint256 public constant GRADIENT = 0;
 
+    // mapping of where we'll store the gradient image
     mapping(uint256 => address) public files;
 
+    // our on-chain font for rendering
     address public spaceFont;
 
-    function setFontContract(address font) external onlyOwner {
-        spaceFont = font;
-    }
-
-    // saving scroll files on-chain. pain.
-    function saveFile(uint256 index, string calldata fileContent)
-        public
-        onlyOwner
-    {
-        files[index] = SSTORE2.write(bytes(fileContent));
-    }
-
-    // we have dna as a param in the interface incase we want to do update our
-    // renderer to use it (ie potential onchain layering)
+    // we pass in tokenID even though we're not using it
+    // in case our new renderer needs it
     function tokenURI(
         uint256 tokenId,
         uint256 blockNumber,
@@ -63,6 +52,7 @@ contract ConclusionRenderer is Ownable {
             );
     }
 
+    // construct the image
     function getSVG(uint256 blockNumber)
         internal
         view
@@ -88,7 +78,6 @@ contract ConclusionRenderer is Ownable {
                 "font-family: 'Space-Grotesk';"
                 "font-style: normal;"
                 "src:url(",
-                // getFont(),
                 ISpaceFont(spaceFont).getFont(),
                 ");}"
                 ".title {"
@@ -101,5 +90,17 @@ contract ConclusionRenderer is Ownable {
                 "</svg>"
             )
         );
+    }
+
+    function setFontContract(address font) external onlyOwner {
+        spaceFont = font;
+    }
+
+    // save gradient on chain
+    function saveFile(uint256 index, string calldata fileContent)
+        public
+        onlyOwner
+    {
+        files[index] = SSTORE2.write(bytes(fileContent));
     }
 }

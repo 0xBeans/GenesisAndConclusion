@@ -5,6 +5,6 @@ interface IGenesisRenderer {
     function tokenURI(
         uint256 tokenId,
         uint256 blockNumber,
-        uint256 blockDifficulty
+        uint256 mergeBlock
     ) external view returns (string memory);
 }
