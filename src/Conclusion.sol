@@ -9,7 +9,7 @@ import "./IConclusionRenderer.sol";
 contract Conclusion is ERC721, Ownable {
     error AlreadyMinted();
     error TokenDoesNotExist();
-    error MergeHasOccured();
+    error MergeHasOccurred();
 
     struct MintInfo {
         uint128 blockNum;
@@ -37,7 +37,7 @@ contract Conclusion is ERC721, Ownable {
 
     function mint() external onlyEOA {
         if (mintedBlocks[tx.origin] > 0) revert AlreadyMinted();
-        if (mergeHasOccured()) revert MergeHasOccured();
+        if (mergeHasOccurred()) revert MergeHasOccurred();
 
         checkProofOfWorkValidAndUpdate();
 
@@ -57,12 +57,12 @@ contract Conclusion is ERC721, Ownable {
     }
 
     function checkProofOfWorkValidAndUpdate() public {
-        if (!mergeHasOccured()) {
+        if (!mergeHasOccurred()) {
             lastWorkBlock = block.number;
         }
     }
 
-    function mergeHasOccured() public view returns (bool) {
+    function mergeHasOccurred() public view returns (bool) {
         return block.difficulty > 2**64 || block.difficulty == 0;
     }
 
