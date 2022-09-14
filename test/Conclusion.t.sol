@@ -30,16 +30,24 @@ contract TestConclusion is Test, Constants {
 }
 
 contract TestConclusionMint is TestConclusion {
+    function testShouldMint() public {
+        assertEq(conclusion.lastWorkBlock() == block.number, false);
+
+        vm.prank(owner,owner);
+        vm.difficulty(12);
+        conclusion.mint();
+
+        assertEqUint(conclusion.totalSupply(), 1);
+        assertEqUint(conclusion.lastWorkBlock(), block.number);
+    }
+
     function testShouldFailToCallMintFromNonEOA() public {
         vm.prank(address(conclusion));
         vm.expectRevert("only EOA");
         conclusion.mint();
-    }
 
-    function testShouldMint() public {
-        vm.prank(owner,owner);
-        vm.difficulty(12);
-        conclusion.mint();
+        assertEq(conclusion.lastWorkBlock() == block.number, false);
+        assertEqUint(conclusion.totalSupply(), 0);
     }
 
     function testShouldNotMintAfterMergeHasOccured() public {
@@ -62,6 +70,7 @@ contract TestConclusionMint is TestConclusion {
         vm.expectRevert(0xddefae28);
         conclusion.mint();
         assertEqUint(conclusion.totalSupply(), 1);
+        vm.stopPrank();
     }
 }
 
