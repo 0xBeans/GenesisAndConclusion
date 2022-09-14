@@ -7,3 +7,6 @@
 [submodule "lib/sstore2"]
 	path = lib/sstore2
 	url = https://github.com/0xsequence/sstore2
+[submodule "lib/solady"]
+	path = lib/solady
+	url = https://github.com/Vectorized/solady
