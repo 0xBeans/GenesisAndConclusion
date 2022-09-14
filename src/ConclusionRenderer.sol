@@ -4,17 +4,22 @@ pragma solidity ^0.8.13;
 import "openzeppelin/access/Ownable.sol";
 import "sstore2/SSTORE2.sol";
 
+import "./ISpaceFont.sol";
+
 contract ConclusionRenderer is Ownable {
     // storing scroll files in contract storage using sstore2 because
     // marketplaces dont allow 3rd party filess to be loaded via url
     // kill  me
-    uint256 public constant FONT_PARTITION_1 = 0;
-    uint256 public constant FONT_PARTITION_2 = 1;
-    uint256 public constant FONT_PARTITION_3 = 2;
-    uint256 public constant FONT_PARTITION_4 = 3;
-    uint256 public constant FONT_PARTITION_5 = 4;
-    uint256 public constant GRADIENT = 5;
+
+    uint256 public constant GRADIENT = 0;
+
     mapping(uint256 => address) public files;
+
+    address public spaceFont;
+
+    function setFontContract(address font) external onlyOwner {
+        spaceFont = font;
+    }
 
     // saving scroll files on-chain. pain.
     function saveFile(uint256 index, string calldata fileContent)
@@ -26,11 +31,11 @@ contract ConclusionRenderer is Ownable {
 
     // we have dna as a param in the interface incase we want to do update our
     // renderer to use it (ie potential onchain layering)
-    function tokenURI(uint256 tokenId, uint256 blockNumber)
-        external
-        view
-        returns (string memory svgString)
-    {
+    function tokenURI(
+        uint256 tokenId,
+        uint256 blockNumber,
+        uint256 blockDifficulty
+    ) external view returns (string memory svgString) {
         return
             string(
                 abi.encodePacked(
@@ -43,9 +48,12 @@ contract ConclusionRenderer is Ownable {
                             '"image": "data:image/svg+xml;base64,',
                             Base64.encode(bytes(getSVG(blockNumber))),
                             '",'
-                            // '"attributes":',
-                            // formatTraits(traitIndexes),
-                            "}"
+                            '"attributes": [{"trait_type": "block number", "value":"',
+                            toString(blockNumber),
+                            '"},',
+                            '{"trait_type": "block difficulty", "value":"',
+                            toString(blockDifficulty),
+                            '"}]}'
                         )
                     )
                 )
@@ -63,12 +71,12 @@ contract ConclusionRenderer is Ownable {
                 "<image height='256' width='256' href='",
                 string(SSTORE2.read(files[GRADIENT])),
                 "'/>"
-                    "<text x='50%' y='40%' dominant-baseline='middle' text-anchor='middle' class='title'>"
-        "MINTED"
-    "</text>"
-    "<text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' class='title'>"
-        "AT"
-    "</text>"
+                "<text x='50%' y='40%' dominant-baseline='middle' text-anchor='middle' class='title'>"
+                "MINTED"
+                "</text>"
+                "<text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' class='title'>"
+                "AT"
+                "</text>"
                 "<text x='50%' y='60%' dominant-baseline='middle' text-anchor='middle' class='title'> #",
                 toString(blockNumber),
                 "</text>"
@@ -77,18 +85,14 @@ contract ConclusionRenderer is Ownable {
                 "font-family: 'Space-Grotesk';"
                 "font-style: normal;"
                 "src:url(",
-                // string(SSTORE2.read(files[0])),
-                // string(SSTORE2.read(files[1])),
-                // string(SSTORE2.read(files[2])),
-                // string(SSTORE2.read(files[3])),                    
-                // string(SSTORE2.read(files[4])),  
-                getFont(),                  
+                // getFont(),
+                ISpaceFont(spaceFont).getFont(),
                 ");}"
                 ".title {"
                 "font-family: 'Space-Grotesk';"
                 "letter-spacing: 0.025em;"
                 "font-size: 23px;"
-                "fill: black;"
+                "fill: white;"
                 "}"
                 "</style>"
                 "</svg>"
@@ -96,13 +100,18 @@ contract ConclusionRenderer is Ownable {
         );
     }
 
-    function getFont() public view returns (string memory) {
-                return string(abi.encodePacked(string(SSTORE2.read(files[0])),
-                string(SSTORE2.read(files[1])),
-                string(SSTORE2.read(files[2])),
-                string(SSTORE2.read(files[3])),                    
-                string(SSTORE2.read(files[4]))));
-    }
+    // function getFont() public view returns (string memory) {
+    //     return
+    //         string(
+    //             abi.encodePacked(
+    //                 SSTORE2.read(files[0]),
+    //                 SSTORE2.read(files[1]),
+    //                 SSTORE2.read(files[2]),
+    //                 SSTORE2.read(files[3]),
+    //                 SSTORE2.read(files[4])
+    //             )
+    //         );
+    // }
 
     function toString(uint256 value) internal pure returns (string memory) {
         if (value == 0) {

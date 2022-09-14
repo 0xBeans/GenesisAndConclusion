@@ -10,13 +10,18 @@ contract Genesis is ERC721, Ownable {
     error TokenDoesNotExist();
     error MergeHasNotOccured();
 
+    struct MintInfo {
+        uint128 blockNum;
+        uint128 blockdifficulty;
+    }
+
     uint256 public genesisMergeBlock;
     uint256 public totalSupply;
 
     address public genesisRenderer;
 
     mapping(address => uint256) mintedBlocks;
-    mapping(uint256 => uint256) tokenToBlockNum;
+    mapping(uint256 => MintInfo) tokenToBlockNum;
 
     modifier onlyEOA() {
         require(msg.sender == tx.origin, "only EOA");
@@ -38,7 +43,10 @@ contract Genesis is ERC721, Ownable {
         uint256 currSupply = totalSupply;
 
         mintedBlocks[tx.origin] = block.number;
-        tokenToBlockNum[currSupply] = block.number;
+        tokenToBlockNum[currSupply] = MintInfo(
+            uint128(block.number),
+            uint128(block.difficulty)
+        );
 
         unchecked {
             _mint(tx.origin, currSupply++);
@@ -70,10 +78,13 @@ contract Genesis is ERC721, Ownable {
             return "";
         }
 
+        MintInfo memory info = tokenToBlockNum[_tokenId];
+
         return
             IGenesisRenderer(genesisRenderer).tokenURI(
                 _tokenId,
-                tokenToBlockNum[_tokenId]
+                info.blockNum,
+                info.blockdifficulty
             );
     }
 }

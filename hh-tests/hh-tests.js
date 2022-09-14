@@ -4,21 +4,14 @@ const Web3 = require('web3');
 const fs = require("fs");
 
 
-describe("Mirakai Full integration tests", function () {
-  let conclusionFactory;
-  let conclusionRendererFactory;
-  let mirakaiScrollsRendererFactory;
-  let mirakaiHeroesFactory;
-  let mirakaiHeroesRendererFactory;
-  let mirakaiDnaParserFactory;
-  let orbsFactory;
+describe("2Blocks", function () {
+  let GenesisFactory;
+  let GenesisRendererFactory;
+  let spaceFontFactory;
 
-  let conclusion;
-  let mirakaiScrollsRenderer;
-  let mirakaiHeroes;
-  let mirakaiHeroesRenderer;
-  let mirakaiDnaParser;
-  let orbs;
+  let Genesis;
+  let GenesisRenderer;
+  let spaceFont;
 
   let owner;
   let addr1;
@@ -31,14 +24,18 @@ describe("Mirakai Full integration tests", function () {
       "0x3532c806834d0a952c89f8954e2f3c417e3d6a5ad0d985c4a87a545da0ca722a";
 
   beforeEach(async function() {
-    conclusionFactory = await ethers.getContractFactory("Conclusion");
-    conclusionRendererFactory = await ethers.getContractFactory("ConclusionRenderer");
+    GenesisFactory = await ethers.getContractFactory("Genesis");
+    GenesisRendererFactory = await ethers.getContractFactory("GenesisRenderer");
+    spaceFontFactory = await ethers.getContractFactory("SpaceFont");
 
     [owner, addr1, addr2, ...addrs] = await ethers.getSigners();
 
-    conclusion = await conclusionFactory.deploy();
-    conclusionRenderer = await conclusionRendererFactory.deploy();
-    await conclusion.setRenderer(conclusionRenderer.address)
+    Genesis = await GenesisFactory.deploy();
+    GenesisRenderer = await GenesisRendererFactory.deploy();
+    spaceFont = await spaceFontFactory.deploy();
+
+    await Genesis.setRenderer(GenesisRenderer.address)
+    GenesisRenderer.setFontContract(spaceFont.address)
     
 
     const file = await fs.readFileSync(
@@ -55,30 +52,29 @@ describe("Mirakai Full integration tests", function () {
     const fourthPart = content.substring(partition_size*3, partition_size*4);
     const fifthPart = content.substring(partition_size*4);
 
-    await conclusionRenderer.saveFile(0, firstPart)
-    await conclusionRenderer.saveFile(1, secondPart)
-    await conclusionRenderer.saveFile(2, thirdPart)
-    await conclusionRenderer.saveFile(3, fourthPart)
-    await conclusionRenderer.saveFile(4, fifthPart)
+    await spaceFont.saveFile(0, firstPart)
+    await spaceFont.saveFile(1, secondPart)
+    await spaceFont.saveFile(2, thirdPart)
+    await spaceFont.saveFile(3, fourthPart)
+    await spaceFont.saveFile(4, fifthPart)
 
     const fileBG = await fs.readFileSync(
         __dirname + '/../initialization-scripts/pos_gradient.txt'
     );
     const bg = fileBG.toString();
 
-    await conclusionRenderer.saveFile(5, bg)
-    // await mirakaiScrollsRenderer.saveFile(0, content);
+    await GenesisRenderer.saveFile(0, bg)
 
   })
 
   it("should mint-drip-reroll-summon", async function () {
-      await conclusion.mint()
+      await Genesis.mint()
 
-      let uri = await conclusion.tokenURI(0)
+      let uri = await Genesis.tokenURI(0)
 
       console.log("HERE", uri)
 
-    //   let font = await conclusionRenderer.getFont()
+    //   let font = await GenesisRenderer.getFont()
 
     //   console.log("FOT", font)
       

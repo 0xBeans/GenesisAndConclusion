@@ -10,13 +10,18 @@ contract Conclusion is ERC721, Ownable {
     error TokenDoesNotExist();
     error MergeHasOccured();
 
+    struct MintInfo {
+        uint128 blockNum;
+        uint128 blockdifficulty;
+    }
+
     uint256 public lastWorkBlock;
     uint256 public totalSupply;
 
     address public conclusionRenderer;
 
     mapping(address => uint256) mintedBlocks;
-    mapping(uint256 => uint256) tokenToBlockNum;
+    mapping(uint256 => MintInfo) tokenToBlockNum;
 
     modifier onlyEOA() {
         require(msg.sender == tx.origin, "only EOA");
@@ -30,15 +35,18 @@ contract Conclusion is ERC721, Ownable {
     }
 
     function mint() external onlyEOA {
-        // if (mintedBlocks[tx.origin] > 0) revert AlreadyMinted();
-        // if (mergeHasOccured()) revert MergeHasOccured();
+        if (mintedBlocks[tx.origin] > 0) revert AlreadyMinted();
+        if (mergeHasOccured()) revert MergeHasOccured();
 
-        // checkProofOfWorkValidAndUpdate();
+        checkProofOfWorkValidAndUpdate();
 
         uint256 currSupply = totalSupply;
 
         mintedBlocks[tx.origin] = block.number;
-        tokenToBlockNum[currSupply] = block.number;
+        tokenToBlockNum[currSupply] = MintInfo(
+            uint128(block.number),
+            uint128(block.difficulty)
+        );
 
         unchecked {
             _mint(tx.origin, currSupply++);
@@ -70,10 +78,13 @@ contract Conclusion is ERC721, Ownable {
             return "";
         }
 
+        MintInfo memory info = tokenToBlockNum[_tokenId];
+
         return
             IConclusionRenderer(conclusionRenderer).tokenURI(
                 _tokenId,
-                tokenToBlockNum[_tokenId]
+                info.blockNum,
+                info.blockdifficulty
             );
     }
 }
