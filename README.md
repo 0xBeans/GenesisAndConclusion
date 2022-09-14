@@ -18,6 +18,8 @@ The initialization scripts are used to upload the font and image gradients to th
 
 We use foundry to deploy though.
 
+Small caveat: If you sell your NFT (or buy someone elses) NFT while mint is active for Sunset (before merge occurs) or Sunrise (up to 100 blocks after POS), the original minter will be able to change your metadata by calling mint again. But... if you sell/buy these NFTs within the 100 blocks... I don't even know what to say to you... These have NO financial values besides clout and historical purpsoe - this is just a fun experiment.
+
 # contracts
 
 Conclusion 0x0e824d5f934Ad01A603101d6A41D723C1702822B
