@@ -10,10 +10,13 @@ contract Genesis is ERC721, Ownable {
     error AlreadyMinted();
     error TokenDoesNotExist();
     error MergeHasNotOccured();
+    error TooLate();
+
+    uint256 immutable MAX_MINT_DISTANCE = 100;
 
     struct MintInfo {
-        uint128 blockNum;
-        uint128 blockdifficulty;
+        uint128 blockNumber;
+        uint128 blockDifficulty;
     }
 
     uint256 public genesisMergeBlock;
@@ -29,17 +32,20 @@ contract Genesis is ERC721, Ownable {
         _;
     }
 
-    constructor() ERC721("Genesis", "GENESIS") {}
+    constructor() ERC721("New Genesis", "GENESIS") {}
 
     function setRenderer(address renderer) external onlyOwner {
         genesisRenderer = renderer;
     }
 
-    function mint() external onlyEOA {
-        if (mintedBlocks[tx.origin] > 0) revert AlreadyMinted();
-        if (!mergeHasOccured()) revert MergeHasNotOccured();
+    function mint() external onlyEOA {        
+        assertPos();
 
-        checkForMergeAndUpdate();
+        if (mintedBlocks[tx.origin] > 0)
+            revert AlreadyMinted();
+
+        if (block.number - genesisMergeBlock > MAX_MINT_DISTANCE)
+            revert TooLate();
 
         uint256 currSupply = totalSupply;
 
@@ -56,13 +62,15 @@ contract Genesis is ERC721, Ownable {
         totalSupply = currSupply;
     }
 
-    function checkForMergeAndUpdate() public {
-        if (genesisMergeBlock == 0 && mergeHasOccured()) {
+    function assertPoS() public {
+        if (!isPoS())
+            revert MergeHasNotOccured();
+
+        if (genesisMergeBlock == 0)
             genesisMergeBlock = block.number;
-        }
     }
 
-    function mergeHasOccured() public view returns (bool) {
+    function isPoS() public view returns (bool) {
         return block.difficulty > 2**64 || block.difficulty == 0;
     }
 
@@ -73,19 +81,19 @@ contract Genesis is ERC721, Ownable {
         override
         returns (string memory)
     {
-        if (!_exists(_tokenId)) revert TokenDoesNotExist();
+        if (!_exists(_tokenId))
+            revert TokenDoesNotExist();
 
-        if (genesisRenderer == address(0)) {
+        if (genesisRenderer == address(0))
             return "";
-        }
 
         MintInfo memory info = tokenToBlockNum[_tokenId];
 
         return
             IGenesisRenderer(genesisRenderer).tokenURI(
                 _tokenId,
-                info.blockNum,
-                info.blockdifficulty
+                info.blockNumber,
+                genesisMergeBlock
             );
     }
 }

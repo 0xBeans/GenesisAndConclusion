@@ -2,23 +2,23 @@
 pragma solidity 0.8.13;
 
 import "forge-std/Test.sol";
-import "../src/Conclusion.sol";
+import "../src/Genesis.sol";
 
-contract ConclusionTest is Test {
-    Conclusion public c;
+contract GenesisTest is Test {
+    Genesis public g;
     function setUp() public {
-      c = new Conclusion();
-      vm.difficulty(2**25);
+      g = new Genesis();
+        vm.difficulty(2**255);
     }
 
-    function test_mintContract() public {
+    function mintContract() public {
       vm.expectRevert("only EOA");
-      c.mint();
+      g.mint();
     }
 
     function test_mint() public {
         vm.prank(0x4C9ACeE7Ba4d5AFD8408D0c68591e2ABB01A3ec9, 0x4C9ACeE7Ba4d5AFD8408D0c68591e2ABB01A3ec9);
-        c.mint();
+        g.mint();
     }
 
     function test_idk() public {
