@@ -3,13 +3,14 @@ pragma solidity ^0.8.13;
 
 import "forge-std/Test.sol";
 import "../src/Conclusion.sol";
+import "./Constants.t.sol";
 
 interface CheatCodes {
    // Gets address for a given private key, (privateKey) => (address)
    function addr(uint256) external returns (address);
 }
 
-contract TestConclusion is Test {
+contract TestConclusion is Test, Constants {
     address public owner;
     address public addr1;
     address public addr2;
@@ -26,49 +27,9 @@ contract TestConclusion is Test {
         addr1 = cheats.addr(1);
         addr2 = cheats.addr(2);
     }
+}
 
-    function testSetRenderOnlyOwner() public {
-        conclusion.setRenderer(addr1);
-        assertEq(conclusion.conclusionRenderer(), addr1);
-    }
-
-    function testShouldFailToSetRenderNotOnlyOwner() public {
-        vm.prank(addr2);
-        vm.expectRevert("Ownable: caller is not the owner");
-        conclusion.setRenderer(addr1);
-    }
-
-    function testMergeHasOccuredWhenDifficulty0() public {
-        vm.difficulty(0);
-        assertEq(conclusion.mergeHasOccured(), true);
-    }
-
-    function testMergeHasOccuredWhenDifficulty2pwr64() public {
-        vm.difficulty(2**64 + 1);
-        assertEq(conclusion.mergeHasOccured(), true);
-    }
-
-    function testMergeHasNotOccuredWhenOneTermFalse() public {
-        vm.difficulty(12);
-        assertEq(conclusion.mergeHasOccured(), false);
-    }
-
-    function testCheckProofOfWorkValidAndUpdateBeforeMerge() public {
-        vm.difficulty(12);
-        assertEq(conclusion.mergeHasOccured(), false);
-
-        conclusion.checkProofOfWorkValidAndUpdate();
-        assertEq(conclusion.lastWorkBlock() == block.number, true);
-    }
-
-    function testCheckProofOfWorkValidAndUpdateAfterMerge() public {
-        vm.difficulty(0);
-        assertEq(conclusion.mergeHasOccured(), true);
-
-        conclusion.checkProofOfWorkValidAndUpdate();
-        assertEq(conclusion.lastWorkBlock() == block.number, false);
-    }
-
+contract TestConclusionMint is TestConclusion {
     function testShouldFailToCallMintFromNonEOA() public {
         vm.prank(address(conclusion));
         vm.expectRevert("only EOA");
@@ -83,7 +44,7 @@ contract TestConclusion is Test {
 
     function testShouldNotMintAfterMergeHasOccured() public {
         vm.prank(owner,owner);
-        vm.difficulty(2**64 + 1);
+        vm.difficulty(POST_MERGE_DIFFICULTY_MAX);
         // MergeHasOccured == 0x1543afaf
         vm.expectRevert(0x1543afaf);
         conclusion.mint();
@@ -102,5 +63,48 @@ contract TestConclusion is Test {
         conclusion.mint();
         assertEqUint(conclusion.totalSupply(), 1);
     }
+}
 
+contract TestConclusionUtils is TestConclusion {
+    function testSetRenderOnlyOwner() public {
+        conclusion.setRenderer(addr1);
+        assertEq(conclusion.conclusionRenderer(), addr1);
+    }
+
+    function testShouldFailToSetRenderNotOnlyOwner() public {
+        vm.prank(addr2);
+        vm.expectRevert("Ownable: caller is not the owner");
+        conclusion.setRenderer(addr1);
+    }
+
+    function testMergeHasOccuredWhenDifficulty0() public {
+        vm.difficulty(POST_MERGE_DIFFICULTY_MIN);
+        assertEq(conclusion.mergeHasOccured(), true);
+    }
+
+    function testMergeHasOccuredWhenDifficulty2pwr64() public {
+        vm.difficulty(POST_MERGE_DIFFICULTY_MAX);
+        assertEq(conclusion.mergeHasOccured(), true);
+    }
+
+    function testMergeHasNotOccuredWhenOneTermFalse() public {
+        vm.difficulty(12);
+        assertEq(conclusion.mergeHasOccured(), false);
+    }
+
+    function testCheckProofOfWorkValidAndUpdateBeforeMerge() public {
+        vm.difficulty(12);
+        assertEq(conclusion.mergeHasOccured(), false);
+
+        conclusion.checkProofOfWorkValidAndUpdate();
+        assertEq(conclusion.lastWorkBlock() == block.number, true);
+    }
+
+    function testCheckProofOfWorkValidAndUpdateAfterMerge() public {
+        vm.difficulty(POST_MERGE_DIFFICULTY_MIN);
+        assertEq(conclusion.mergeHasOccured(), true);
+
+        conclusion.checkProofOfWorkValidAndUpdate();
+        assertEq(conclusion.lastWorkBlock() == block.number, false);
+    }
 }
