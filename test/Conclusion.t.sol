@@ -75,6 +75,32 @@ contract TestConclusion is Test {
         conclusion.mint();
     }
 
-    function testShouldMint()
+    function testShouldMint() public {
+        vm.prank(owner,owner);
+        vm.difficulty(12);
+        conclusion.mint();
+    }
+
+    function testShouldNotMintAfterMergeHasOccured() public {
+        vm.prank(owner,owner);
+        vm.difficulty(2**64 + 1);
+        // MergeHasOccured == 0x1543afaf
+        vm.expectRevert(0x1543afaf);
+        conclusion.mint();
+    }
+
+    function testShouldNotMintTwiceForSameUser() public {
+        // sanity
+        assertEqUint(conclusion.totalSupply(), 0);
+
+        vm.startPrank(owner,owner);
+        vm.difficulty(13);
+        conclusion.mint();
+        assertEqUint(conclusion.totalSupply(), 1);
+
+        vm.expectRevert(0xddefae28);
+        conclusion.mint();
+        assertEqUint(conclusion.totalSupply(), 1);
+    }
 
 }
