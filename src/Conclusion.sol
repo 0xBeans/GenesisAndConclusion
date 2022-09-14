@@ -3,6 +3,7 @@ pragma solidity ^0.8.13;
 
 import "openzeppelin/token/ERC721/ERC721.sol";
 import "openzeppelin/access/Ownable.sol";
+
 import "./IConclusionRenderer.sol";
 
 contract Conclusion is ERC721, Ownable {

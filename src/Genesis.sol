@@ -3,6 +3,7 @@ pragma solidity ^0.8.13;
 
 import "openzeppelin/token/ERC721/ERC721.sol";
 import "openzeppelin/access/Ownable.sol";
+
 import "./IGenesisRenderer.sol";
 
 contract Genesis is ERC721, Ownable {
