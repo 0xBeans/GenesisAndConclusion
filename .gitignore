@@ -1,0 +1,17 @@
+# Compiler files
+cache/
+out/
+artifacts/
+
+# Ignores development broadcast logs
+!/broadcast
+/broadcast/*
+/broadcast/*/31337/
+
+# Dotenv file
+.env
+
+node_modules/
+hh-cache
+
+.DS_Store
